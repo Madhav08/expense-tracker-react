@@ -10,10 +10,10 @@ const IncomeExpenses = () => {
     .reduce((sum, totalIncome) => (sum += totalIncome), 0)
     .toFixed(2);
 
-  const expenses = amount
-    .filter((eachAmount) => eachAmount < 0)
-    .reduce((sum, totalIncome) => (sum += totalIncome), 0)
-    .toFixed(2);
+  const expenses =
+    amount
+      .filter((eachAmount) => eachAmount < 0)
+      .reduce((sum, totalIncome) => (sum += totalIncome), 0) * -(1).toFixed(2);
 
   return (
     <>
