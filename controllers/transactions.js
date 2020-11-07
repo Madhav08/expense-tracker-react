@@ -1,20 +1,78 @@
+const Transactions = require("../models/Transaction");
 // @desc Get All Transactions
 //@route GET /api/v1/transactions
 //@access Public
-exports.getTransactions = (req, res, next) => {
-  res.send("GET Reqest!!");
+exports.getTransactions = async (req, res, next) => {
+  try {
+    const transactions = await Transactions.find();
+
+    return res.status(200).json({
+      success: true,
+      count: transactions.length,
+      data: transactions,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: "Server Error",
+    });
+  }
 };
 
 // @desc Add Transactions
 //@route POST /api/v1/transactions
 //@access Public
-exports.addTransactions = (req, res, next) => {
-  res.send("POST Reqest!!");
+exports.addTransactions = async (req, res, next) => {
+  try {
+    const { text, amount } = req.body;
+
+    const transaction = await Transactions.create(req.body);
+
+    return res.status(201).json({
+      success: true,
+      data: transaction,
+    });
+  } catch (err) {
+    if (err.name === "ValidationError") {
+      const messages = Object.values(err.errors).map((val) => val.message);
+
+      return res.status(400).json({
+        success: false,
+        error: messages,
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        error: "Server Error",
+      });
+    }
+  }
 };
 
 // @desc Delete Transactions
 //@route DELETE /api/v1/transactions/:id
 //@access Public
-exports.deleteTransactions = (req, res, next) => {
-  res.send("DELETE Reqest!!");
+exports.deleteTransactions = async (req, res, next) => {
+  try {
+    const transaction = await Transactions.findById(req.params.id);
+
+    if (!transaction) {
+      res.status(404).json({
+        success: false,
+        error: "No Transaction Found",
+      });
+    }
+
+    await transaction.remove();
+
+    return res.status(200).json({
+      success: true,
+      message: "Data Deleted Successfully",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: "Server Error",
+    });
+  }
 };
