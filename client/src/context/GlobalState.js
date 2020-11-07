@@ -1,10 +1,13 @@
-import React, { createContext, useContext, useReducer } from "react";
+import React, { createContext, useReducer } from "react";
 import AppReducer from "./AppReducer";
+import axios from "axios";
 
 //initial transaction
 
 const initialState = {
   transaction: [],
+  error: null,
+  loading: true,
 };
 
 //Create Context
@@ -16,26 +19,67 @@ export const GlobalProvider = ({ children }) => {
   const [state, dispatch] = useReducer(AppReducer, initialState);
 
   //Actions
-  function deleteTransactions(id) {
-    dispatch({
-      type: "DELETE_TRANSACTION",
-      payload: id,
-    });
+  async function getTransactions() {
+    try {
+      const res = await axios.get("/api/v1/transactions");
+      dispatch({
+        type: "GET_TRANSACTIONS",
+        payload: res.data.data,
+      });
+    } catch (err) {
+      dispatch({
+        type: "TRANSACTION_ERROR",
+        payload: err.response.data.error,
+      });
+    }
   }
 
-  function addTransaction(transaction) {
-    dispatch({
-      type: "ADD_TRANSACTION",
-      payload: transaction,
-    });
+  async function deleteTransactions(id) {
+    try {
+      await axios.delete(`/api/v1/transactions/${id}`);
+      dispatch({
+        type: "DELETE_TRANSACTION",
+        payload: id,
+      });
+    } catch (err) {
+      dispatch({
+        type: "TRANSACTION_ERROR",
+        payload: err.response.data.error,
+      });
+    }
+  }
+
+  async function addTransaction(transaction) {
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    try {
+      const res = await axios.post("/api/v1/transactions", transaction, config);
+
+      dispatch({
+        type: "ADD_TRANSACTION",
+        payload: res.data.data,
+      });
+    } catch (err) {
+      dispatch({
+        type: "TRANSACTION_ERROR",
+        payload: err.response.data.error,
+      });
+    }
   }
 
   return (
     <GlobalContext.Provider
       value={{
         transactions: state.transaction,
+        error: state.error,
+        loading: state.loading,
         deleteTransactions,
         addTransaction,
+        getTransactions,
       }}
     >
       {children}
